@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Virtual env.
+venv/
+
+# Cache
+__pycache__/
+*.pyc
+
+# Secrets, env. variables
+.env*
+*.env
+
+# DB
+db.sqlite3
+*.sqlite3
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Docs
+README.md
