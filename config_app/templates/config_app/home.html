@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; }
+        header { background-color: {{ theme_color }}; color: white; padding: 15px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; }
+        .config-item { margin: 5px 0; padding: 8px; background-color: #f5f5f5; }
+        .maintenance { background-color: #ffe6e6; padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ site_name }}</h1>
+    </header>
+    
+    <div class="container">
+        {% if maintenance_mode %}
+            <div class="maintenance">
+                <h2>Site is Under Maintenance</h2>
+                <p>Please check back later.</p>
+            </div>
+        {% else %}
+            <h2>{{ welcome_message }}</h2>
+            
+            <h3>Configuration Settings</h3>
+            {% for key, value in configs.items %}
+                <div class="config-item">
+                    <strong>{{ key }}:</strong> {{ value }}
+                </div>
+                {% if forloop.counter|divisibleby:items_per_page and not forloop.last %}
+                    <hr>
+                {% endif %}
+            {% endfor %}
+            
+            {% if show_logs %}
+                <h3>Configuration Change Logs</h3>
+                <div style="padding: 10px; background-color: #f0f0f0;">
+                    <p>Configuration change logs would appear here</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
