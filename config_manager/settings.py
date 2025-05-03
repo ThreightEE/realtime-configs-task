@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'config_app',
+    'constance',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,31 @@ DATABASES = {
         'HOST': env('POSTGRES_HOST'),
         'PORT': env('POSTGRES_PORT'),
     }
+}
+
+
+# Constance settings
+
+CONSTANCE_BACKEND = 'constance.backends.redisd.RedisBackend'
+
+CONSTANCE_REDIS_CONNECTION = {
+    'host': env('REDIS_HOST'),
+    'port': env('REDIS_PORT'),
+    'db': env('REDIS_DB'),
+}
+
+CONSTANCE_CONFIG = {
+    'SITE_NAME': ('Config Manager', 'Site name', str),
+    'WELCOME_MESSAGE': ('Configuration Management System. You can see real-time configs and their values here', str),
+    'THEME_COLOR': ('#4a6cf7', 'Background theme colour in HEX', str),
+    'MAINTENANCE_MODE': (False, 'Maintenance mode', bool),
+    'ITEMS_PER_PAGE': (5, 'Config items per page', int),
+    'SHOW_LOGS': (True, 'Show change logs', bool),
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'General': ('SITE_NAME', 'THEME_COLOR', 'MAINTENANCE_MODE'),
+    'Content': ('WELCOME_MESSAGE', 'ITEMS_PER_PAGE', 'SHOW_LOGS'),
 }
 
 
