@@ -101,7 +101,7 @@ CONSTANCE_REDIS_CONNECTION = {
 
 CONSTANCE_CONFIG = {
     'SITE_NAME': ('Config Manager', 'Site name', str),
-    'WELCOME_MESSAGE': ('Configuration Management System. You can see real-time configs and their values here', str),
+    'WELCOME_MESSAGE': ('You can see real-time configs and their values here', 'Welcome text', str),
     'THEME_COLOR': ('#4a6cf7', 'Background theme colour in HEX', str),
     'MAINTENANCE_MODE': (False, 'Maintenance mode', bool),
     'ITEMS_PER_PAGE': (5, 'Config items per page', int),
