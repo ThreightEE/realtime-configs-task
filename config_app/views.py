@@ -1,31 +1,28 @@
 from django.shortcuts import render
 
 from django.conf import settings
-from constance import config
 
-def home(request):
+from . import realtime_config
+from django.http import HttpRequest, HttpResponse
+from typing import Any
+
+
+def home(request: HttpRequest) -> HttpResponse:
     """
     Demo page to view current constance configs.
     """
 
     config_keys = settings.CONSTANCE_CONFIG.keys()
 
-    # dict {key: current value}
-    configs = {}
-    for key in config_keys:
-        try:
-            configs[key] = getattr(config, key)
-        except Exception as e:
-            print(f"Could not get config for key '{key}'. Error: {e}")
-            configs[key] = None
+    configs: dict[str, Any] = {key: realtime_config.get_config(key) for key in config_keys}
 
-    context = {
-        'site_name': config.SITE_NAME,
-        'theme_color': config.THEME_COLOR,
-        'welcome_message': config.WELCOME_MESSAGE,
-        'maintenance_mode': config.MAINTENANCE_MODE,
-        'items_per_page': config.ITEMS_PER_PAGE,
-        'show_logs': config.SHOW_LOGS,
+    context: dict[str, Any] = {
+        'site_name': configs.get('SITE_NAME'),
+        'theme_color': configs.get('THEME_COLOR'),
+        'welcome_message': configs.get('WELCOME_MESSAGE'),
+        'maintenance_mode': configs.get('MAINTENANCE_MODE'),
+        'items_per_page': configs.get('ITEMS_PER_PAGE') or 10,
+        'show_logs': configs.get('SHOW_LOGS'),
         'configs': configs,
     }
 
