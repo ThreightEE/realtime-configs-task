@@ -2,6 +2,7 @@ from django.apps import AppConfig
 
 import sys
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -11,27 +12,34 @@ class ConfigAppConfig(AppConfig):
     name = 'config_app'
 
     def ready(self):
+        pid = os.getpid()
+        logger.info(f"ConfigAppConfig.ready() CALLED in PID: {pid}")
+
         # Don't call on basic manage.py commands
         management_commands = [
             'makemigrations', 'migrate', 'collectstatic', 'check', 'shell', 'help'
         ]
         is_management_command = any(cmd in sys.argv for cmd in management_commands)
-        is_not_server_process = is_management_command or 'manage.py' in sys.argv[0]
-        logger.info(f"ConfigAppConfig.ready(): is_management_command={is_management_command}, is_not_server_process={is_not_server_process}")
+        is_runserver_main_process = os.environ.get('RUN_MAIN') == 'true'
 
-        from . import realtime_config
-        realtime_config.load_defaults()
-        logger.info("Loaded constance config defaults")
+        if is_management_command or not is_runserver_main_process:
+            logger.info(f"PID {pid}: Skipping Pub/Sub setup for main/management process")
+            return
 
+        logger.info(f"PID {pid}: Pub/Sub setup")
         try:
-            from constance.signals import config_updated
+            from . import realtime_config
             from . import signals
+            from constance.signals import config_updated
+
+            realtime_config.load_defaults()
+            logger.info("Loaded constance config defaults")
+
             config_updated.connect(signals.config_updated_handler)
-            logger.info("Successfully connected 'config_updated' signal to 'config_updated_handler'.")
+            logger.info("Successfully connected 'config_updated' signal to 'config_updated_handler'")
+
+            logger.info("Starting Redis Pub/Sub subscriber")
+            realtime_config.start_subscriber_thread()
+
         except Exception as e:
-             logger.error(f"Failed to connect constance signal: {e}", exc_info=True)
-
-
-        # ! ! ! TO DO: Pub/Sub
-        if not is_not_server_process:
-             logger.info("[Pub/Sub listener to be implemented]")
+            logger.error(f"Error during ConfigAppConfig.ready() initialization: {e}", exc_info=True)
