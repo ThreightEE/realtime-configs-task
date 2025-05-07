@@ -21,6 +21,12 @@ _default_values: dict[str, Any] = {}
 _subscriber_thread = None
 _subscriber_lock = threading.Lock()
 
+# Redis connection fail fast
+_redis_available = True
+_last_redis_error_time = 0.0
+_redis_retry_interval = 10.0
+_redis_status_lock = threading.Lock()
+
 
 def load_defaults() -> None:
     global _default_values
@@ -43,31 +49,54 @@ def get_config(key: str, default: Any = None) -> Any:
      - Save and return on success
      - Return default if given, or default from constance_config
     """
+    global _redis_available, _last_redis_error_time
+
+    current_pid = os.getpid()
 
     with _cache_lock:
         if key in _local_cache:
-            logger.debug(f"Config {key} retrieved from local cache - {_local_cache[key]}")
-            # Check all cache contents for current process for debug
-            # logger.debug(f"PID: {os.getpid()}, cache: {_local_cache}")
+            logger.debug(f"Config {key} retrieved from local cache - "
+                         f"{_local_cache[key]} (PID: {current_pid})")
             return _local_cache[key]
 
-    logger.debug(f"Cache miss for config '{key}'")
+    logger.debug(f"Cache miss for config '{key}' (PID: {current_pid})")
 
-    try:
-        value = getattr(config, key)
-        with _cache_lock:
-            _local_cache[key] = value
-        logger.debug(f"Fetched config '{key}' from Redis and cached - {value}")
-        return value
+    # Fail fast if going for Redis - fallback
+    with _redis_status_lock:
+        current_redis_available = _redis_available
+        current_last_error_time = _last_redis_error_time
+    current_time = time.time()
 
-    except (redis.exceptions.RedisError, AttributeError) as e:
-        if isinstance(e, redis.exceptions.RedisError):
-            logger.warning(f"Redis operation failed for config '{key}'. Error: {e}")
-        else:
-            logger.error(f"Config '{key}' not found in Constance")
+    if not current_redis_available and \
+       (current_time - current_last_error_time) < _redis_retry_interval:
+        logger.warning(f"Redis marked unavailable (PID: {current_pid}) - "
+                       "not attempting connection for another "
+                       f"{(_redis_retry_interval - (current_time - current_last_error_time)):.1f}s")
+    else:
+        try:
+            value = getattr(config, key)
+            with _redis_status_lock:
+                _redis_available = True
 
-    except Exception as e:
-        logger.error(f"Unexpected error getting config '{key}'")
+            with _cache_lock:
+                _local_cache[key] = value
+            logger.debug(f"Fetched config '{key}' from Redis and cached - {value} "
+                         "(PID: {current_pid})")
+            return value
+
+        except redis.exceptions.RedisError as e:
+            logger.warning(f"Redis operation failed for config '{key}' "
+                           "(PID: {current_pid}). Error: {e}")
+            with _redis_status_lock:
+                _redis_available = False
+                _last_redis_error_time = current_time
+
+        except AttributeError:
+            logger.error(f"Config '{key}' not found in Constance (PID: {current_pid})")
+
+        except Exception as e:
+            logger.error(f"Unexpected error getting config '{key}' "
+                         "(PID: {current_pid}): {e}", exc_info=True)
         
     logger.warning(f"Fallback for config '{key}'")
     if default is not None:
