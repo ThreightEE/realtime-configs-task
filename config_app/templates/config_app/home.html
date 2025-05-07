@@ -65,11 +65,33 @@
                     document.getElementById('maintenance').style.display = data.MAINTENANCE_MODE ? 'block' : 'none';
                     document.getElementById('logs-section').style.display = data.SHOW_LOGS ? 'block' : 'none';
                     
+                    if (data.SITE_NAME !== undefined) {
+                        document.title = data.SITE_NAME;
+                        const siteTitleHeader = document.querySelector('header h1'); 
+                        if (siteTitleHeader) {
+                            siteTitleHeader.textContent = data.SITE_NAME;
+                        }
+                    }
+                    
+                    if (data.THEME_COLOR !== undefined) {
+                        const headerElement = document.querySelector('header');
+                        if (headerElement) {
+                            headerElement.style.backgroundColor = data.THEME_COLOR;
+                        }
+                    }
+    
+                    if (data.WELCOME_MESSAGE !== undefined) {
+                        const welcomeMessageElement = document.querySelector('#main-content h2'); 
+                        if (welcomeMessageElement) {
+                            welcomeMessageElement.textContent = data.WELCOME_MESSAGE;
+                        }
+                    }
+                    
                     if (data.ITEMS_PER_PAGE) {
                         itemsPerPage = data.ITEMS_PER_PAGE;
                     }
                     renderPaginatedConfigs(data);
-                    
+
                     if (data.UI_POLLING_INTERVAL && data.UI_POLLING_INTERVAL * 1000 !== pollingInterval) {
                         pollingInterval = data.UI_POLLING_INTERVAL * 1000;
                         clearTimeout(timer);
@@ -78,6 +100,7 @@
                 })
                 .catch(error => console.error('Error:', error))
                 .finally(() => {
+                    clearTimeout(timer);
                     timer = setTimeout(getConfigs, pollingInterval);
                 });
         }
