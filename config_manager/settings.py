@@ -106,11 +106,15 @@ CONSTANCE_CONFIG = {
     'MAINTENANCE_MODE': (False, 'Maintenance mode', bool),
     'ITEMS_PER_PAGE': (5, 'Config items per page', int),
     'SHOW_LOGS': (True, 'Show change logs', bool),
+
+    'UI_POLLING_INTERVAL': (float(300), 'Polling interval for real-time UI, s', float),
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
     'General': ('SITE_NAME', 'THEME_COLOR', 'MAINTENANCE_MODE'),
     'Content': ('WELCOME_MESSAGE', 'ITEMS_PER_PAGE', 'SHOW_LOGS'),
+    
+    'Demo': ('UI_POLLING_INTERVAL',)
 }
 
 REDIS_PUB_SUB_CHANNEL = 'realtime_config_updates'
