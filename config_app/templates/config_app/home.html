@@ -15,6 +15,16 @@
         .pagination span { margin: 0 10px; }
         .page { display: none; }
         .active { display: block; }
+
+        .logs-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .logs-table th, .logs-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+        .logs-table th { background-color: #e9e9e9; }
+        .logs-table td:nth-child(3), .logs-table td:nth-child(4) {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -57,6 +67,46 @@
         var totalPages = 1;
         var itemsPerPage = {{ items_per_page }};
         
+        function loadConfigLogs() {
+            const logsSection = document.getElementById('logs-section');
+            if (logsSection.style.display === 'none') {
+                return; 
+            }
+            
+            fetch('/api/logs/')
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error, status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    const logsContainer = document.getElementById('logs');
+                    if (!logsContainer) return;
+                    
+                    if (data.logs && data.logs.length > 0) {
+                        let html = '<table class="logs-table"><thead><tr>' +
+                                   '<th>Time</th><th>Setting</th><th>Old Value</th><th>New Value</th>' +
+                                   '</tr></thead><tbody>';
+                        data.logs.forEach(log => {
+                            html += `<tr>
+                                <td>${log.changed_at}</td>
+                                <td>${log.key}</td>
+                                <td>${log.old_value || '-'}</td> 
+                                <td>${log.new_value || '-'}</td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                        logsContainer.innerHTML = html;
+                    } else {
+                        logsContainer.innerHTML = '<p>Configuration change logs would appear here</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading logs:', error);
+                    const logsContainer = document.getElementById('logs');
+                    if (logsContainer) logsContainer.innerHTML = '<p>Error loading configuration change logs</p>';
+                });
+        }
+        
         function getConfigs() {
             fetch('/api/configs/')
                 .then(response => response.json())
@@ -96,6 +146,10 @@
                         itemsPerPage = data.ITEMS_PER_PAGE;
                     }
                     renderPaginatedConfigs(data);
+
+                    if (data.SHOW_LOGS) {
+                        loadConfigLogs();
+                    }
 
                     if (data.UI_POLLING_INTERVAL && data.UI_POLLING_INTERVAL * 1000 !== pollingInterval) {
                         pollingInterval = data.UI_POLLING_INTERVAL * 1000;

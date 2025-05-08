@@ -106,15 +106,17 @@ CONSTANCE_CONFIG = {
     'THEME_COLOR': ('#4a6cf7', 'Background theme colour in HEX', str),
     'MAINTENANCE_MODE': (False, 'Maintenance mode', bool),
     'ITEMS_PER_PAGE': (5, 'Config items per page', int),
+
     'SHOW_LOGS': (True, 'Show change logs', bool),
+    'LOGS_COUNT': (10, 'Number of recent change logs to show', int),
 
     'UI_POLLING_INTERVAL': (float(300), 'Polling interval for real-time UI, s', float),
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
     'General': ('SITE_NAME', 'THEME_COLOR', 'MAINTENANCE_MODE'),
-    'Content': ('WELCOME_MESSAGE', 'ITEMS_PER_PAGE', 'SHOW_LOGS'),
-    
+    'Content': ('WELCOME_MESSAGE', 'ITEMS_PER_PAGE'),
+    'Logging': ('SHOW_LOGS', 'LOGS_COUNT'),
     'Demo': ('UI_POLLING_INTERVAL',)
 }
 
