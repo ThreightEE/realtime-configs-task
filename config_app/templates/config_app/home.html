@@ -78,6 +78,11 @@
                         if (headerElement) {
                             headerElement.style.backgroundColor = data.THEME_COLOR;
                         }
+
+                        const paginationButtons = document.querySelectorAll('.pagination button');
+                            paginationButtons.forEach(button => {
+                            button.style.backgroundColor = data.THEME_COLOR;
+                        });
                     }
     
                     if (data.WELCOME_MESSAGE !== undefined) {
