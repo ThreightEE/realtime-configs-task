@@ -90,12 +90,12 @@ def get_config(key: str, default: Any = None) -> Any:
             with _cache_lock:
                 _local_cache[key] = value
             logger.debug(f"Fetched config '{key}' from Redis and cached - {value} "
-                         "(PID: {current_pid})")
+                         f"(PID: {current_pid})")
             return value
 
         except redis.exceptions.RedisError as e:
             logger.warning(f"Redis operation failed for config '{key}' "
-                           "(PID: {current_pid}). Error: {e}")
+                           f"(PID: {current_pid}). Error: {e}")
             with _redis_status_lock:
                 _redis_available = False
                 _last_redis_error_time = current_time
@@ -105,7 +105,7 @@ def get_config(key: str, default: Any = None) -> Any:
 
         except Exception as e:
             logger.error(f"Unexpected error getting config '{key}' "
-                         "(PID: {current_pid}): {e}", exc_info=True)
+                         f"(PID: {current_pid}): {e}", exc_info=True)
     
     # Fallback
 
